@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Management System - Settings</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Quill Rich Text Editor CSS -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2980b9;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --border-color: #bdc3c7;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background-color: #f8f9fa;
+            color: #333;
+        }
+
+        /* Navbar Styling */
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #fff !important;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: #ffd700 !important;
+            transform: scale(1.05);
+        }
+        .navbar-nav {
+            margin-left: 50px;
+        }
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 0 5px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+            position: relative;
+        }
+        .navbar-nav .nav-link:hover {
+            background-color: #ffd700;
+            color: #1e3c72 !important;
+            transform: translateY(-2px);
+        }
+        .navbar-nav .nav-link.active {
+            background-color: #ffd700;
+            color: #1e3c72 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: #ffd700;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+        .navbar-toggler {
+            border: none;
+            padding: 10px;
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            width: 24px;
+            height: 24px;
+        }
+
+        .settings-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: var(--dark-color);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100%;
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .sidebar-header {
+            padding: 0 20px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .sidebar-menu {
+            list-style: none;
+        }
+
+        .sidebar-menu li {
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .sidebar-menu li:hover, .sidebar-menu li.active {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-left: 3px solid var(--primary-color);
+        }
+
+        .main-content {
+            flex: 1;
+            margin-left: 250px;
+            padding: 30px;
+            transition: margin-left 0.3s ease;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .settings-section {
+            display: none;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .settings-section.active {
+            display: block;
+        }
+
+        .section-title {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px 15px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .form-row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-secondary {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #d5dbdb;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+
+        .footer-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        /* Enhanced Notes Section Styles */
+        .notes-container {
+            position: relative;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        #editor-container {
+            height: 300px;
+            overflow-y: auto;
+            padding: 15px;
+            border-radius: 0 0 8px 8px;
+        }
+
+        .ql-toolbar {
+            border-radius: 8px 8px 0 0 !important;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0 !important;
+        }
+
+        .notes-status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 15px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            border-radius: 0 0 8px 8px;
+            font-size: 13px;
+            color: #6c757d;
+        }
+
+        .word-count {
+            font-weight: 500;
+        }
+
+        .last-saved {
+            font-style: italic;
+        }
+
+        .save-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            transition: all 0.3s;
+        }
+
+        .save-indicator.saving {
+            color: #ffc107;
+        }
+
+        .save-indicator.saved {
+            color: #28a745;
+        }
+
+        .save-indicator.error {
+            color: #dc3545;
+        }
+
+        .notes-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .notes-actions .btn {
+            flex: 1;
+        }
+
+        /* Custom checkbox style for Quill */
+        .ql-checklist {
+            color: #333;
+            font-size: 14px;
+        }
+
+        /* Mobile specific styles */
+        @media (max-width: 768px) {
+            .settings-container {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 280px;
+                transform: translateX(-280px);
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 100%;
+                padding-top: 70px;
+                z-index: 900;
+                box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .sidebar-header {
+                padding: 0 15px 15px;
+            }
+
+            .sidebar-menu li {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px 15px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .navbar {
+                padding: 12px 0;
+            }
+
+            .navbar-brand {
+                font-size: 1.3rem;
+            }
+
+            .navbar-toggler {
+                padding: 8px;
+            }
+
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+                margin-bottom: 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 0;
+            }
+
+            .header .btn {
+                width: 100%;
+                margin-top: 5px;
+            }
+
+            .section-title {
+                font-size: 1.25rem;
+                margin-bottom: 15px;
+            }
+
+            .settings-section {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+
+            .form-group {
+                margin-bottom: 15px;
+            }
+
+            .form-control {
+                padding: 10px 12px;
+                font-size: 0.95rem;
+            }
+
+            .btn {
+                padding: 10px 16px;
+                font-size: 0.95rem;
+            }
+
+            .footer-buttons {
+                flex-direction: column-reverse;
+                gap: 10px;
+                margin-top: 25px;
+            }
+
+            .footer-buttons .btn {
+                width: 100%;
+            }
+
+            /* Notes section mobile styles */
+            #editor-container {
+                height: 250px;
+                padding: 12px;
+            }
+
+            .ql-toolbar .ql-formats {
+                margin-right: 4px !important;
+            }
+
+            .ql-toolbar button {
+                padding: 3px 5px !important;
+            }
+
+            .notes-status-bar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 5px;
+                padding: 8px 12px;
+            }
+
+            .notes-actions {
+                flex-direction: column;
+            }
+
+            /* Overlay for sidebar */
+            .sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 800;
+                display: none;
+            }
+
+            .sidebar-overlay.active {
+                display: block;
+            }
+
+            /* Billing data table mobile styles */
+            .table-responsive {
+                margin: 0 -15px;
+                padding: 0 15px;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+
+            .table td, .table th {
+                padding: 0.5rem;
+            }
+
+            .btn-sm {
+                padding: 0.25rem 0.5rem;
+                font-size: 0.8rem;
+            }
+
+            .btn-sm i {
+                font-size: 0.8rem;
+            }
+
+            /* Stack buttons on mobile */
+            .btn-group-sm > .btn, .btn-sm {
+                display: block;
+                width: 100%;
+                margin-bottom: 0.25rem;
+            }
+
+            /* Modal adjustments for mobile */
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            .modal-body {
+                padding: 1rem;
+            }
+
+            .modal-footer {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .modal-footer .btn {
+                width: 100%;
+            }
+        }
+
+        /* Add styles for better table responsiveness */
+        .table-responsive {
+            border-radius: 4px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+
+        .table td {
+            vertical-align: middle;
+        }
+
+        .btn-group-sm {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        @media (min-width: 769px) {
+            .btn-group-sm {
+                flex-direction: row;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .sidebar {
+                width: 260px;
+            }
+
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+            }
+
+            .settings-section {
+                padding: 18px;
+            }
+
+            .form-control {
+                font-size: 0.9rem;
+            }
+
+            .btn {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <a class="navbar-brand" href="../index.html">Inventory Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../product.html">Manage Product</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../product_list.html">Product List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../sales-purchases.html">Sales/Purchases</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../stock-management.html">Stock Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../reports.html">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="settings.html">Settings</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="settings-container">
+        <!-- Sidebar Overlay for Mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+        <!-- Sidebar Navigation -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Settings</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li class="active" data-section="general">General Settings</li>
+                <li data-section="inventory">Inventory Settings</li>
+                <li data-section="data">Data Management</li>
+                <li data-section="notes">Notes</li>
+                <li data-section="billing">Billing</li>
+                <li data-section="billing-data">Billing Data</li>
+                <li data-section="logout">Logout</li>
+            </ul>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <div class="header">
+                <h1>System Settings</h1>
+                <div class="d-flex flex-column w-100 gap-2">
+                    <button class="btn btn-secondary" onclick="goBack()">Cancel</button>
+                    <button class="btn btn-primary" onclick="saveSettings()">Save Changes</button>
+                </div>
+            </div>
+
+            <!-- General Settings Section -->
+            <div id="general" class="settings-section active">
+                <h2 class="section-title">General Settings</h2>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="business-name">Business Name</label>
+                        <input type="text" id="business-name" class="form-control" placeholder="Enter business name">
+                    </div>
+                    <div class="form-group">
+                        <label for="default-currency">Default Currency</label>
+                        <select id="default-currency" class="form-control">
+                            <option value="INR">Indian Rupee (₹)</option>
+                            <option value="USD">US Dollar ($)</option>
+                            <option value="EUR">Euro (€)</option>
+                            <option value="GBP">British Pound (£)</option>
+                            <option value="JPY">Japanese Yen (¥)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="gst-number">GST Number (Optional)</label>
+                        <input type="text" id="gst-number" class="form-control" placeholder="Enter GST number">
+                        <p class="help-text">Enter your GST number if applicable</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="user-email">User Email</label>
+                    <input type="email" id="user-email" class="form-control" readonly>
+                    <p class="help-text">This email is fetched from your login details</p>
+                </div>
+            </div>
+
+            <!-- Inventory Settings Section -->
+            <div id="inventory" class="settings-section">
+                <h2 class="section-title">Inventory Settings</h2>
+                <div class="form-group">
+                    <label for="low-stock-threshold">Low Stock Threshold</label>
+                    <input type="number" id="low-stock-threshold" class="form-control" value="5">
+                    <p class="help-text">Items below this quantity will be marked as low stock</p>
+                </div>
+            </div>
+
+            <!-- Data Management Section -->
+            <div id="data" class="settings-section">
+                <h2 class="section-title">Data Management</h2>
+                <div class="form-group">
+                    <label>Clear All Data</label>
+                    <p class="help-text">Clear all products and transactions from the database. This action cannot be undone.</p>
+                    <button class="btn btn-danger w-100" onclick="clearAllData()">Clear All Data</button>
+                </div>
+                <div class="form-group">
+                    <label>Download Data</label>
+                    <p class="help-text">Download all your data in JSON format for backup purposes.</p>
+                    <button class="btn btn-primary w-100" onclick="downloadData()">Download Data</button>
+                </div>
+            </div>
+
+            <!-- Notes Section -->
+            <div id="notes" class="settings-section">
+                <h2 class="section-title">Notes</h2>
+                <div class="form-group">
+                    <label>Your Notes</label>
+                    <div class="notes-container">
+                        <!-- Toolbar for rich text editing -->
+                        <div id="toolbar">
+                            <span class="ql-formats">
+                                <button class="ql-undo">
+                                    <i class="fas fa-undo"></i>
+                                </button>
+                                <button class="ql-redo">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </span>
+                            <span class="ql-formats">
+                                <select class="ql-font"></select>
+                                <select class="ql-size"></select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-bold"></button>
+                                <button class="ql-italic"></button>
+                                <button class="ql-underline"></button>
+                                <button class="ql-strike"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <select class="ql-color"></select>
+                                <select class="ql-background"></select>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-list" value="ordered"></button>
+                                <button class="ql-list" value="bullet"></button>
+                                <button class="ql-checklist" value="check"></button>
+                                <button class="ql-indent" value="-1"></button>
+                                <button class="ql-indent" value="+1"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-link"></button>
+                                <button class="ql-image"></button>
+                            </span>
+                            <span class="ql-formats">
+                                <button class="ql-clean"></button>
+                            </span>
+                        </div>
+                        <!-- Editor container -->
+                        <div id="editor-container"></div>
+                        <!-- Status bar -->
+                        <div class="notes-status-bar">
+                            <div class="word-count">Words: <span id="word-count">0</span></div>
+                            <div class="last-saved">Last saved: <span id="last-saved">Never</span>
+                                <span id="save-indicator" class="save-indicator"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notes-actions">
+                        <button class="btn btn-secondary" onclick="clearNotes()">
+                            <i class="fas fa-trash-alt"></i> Clear Notes
+                        </button>
+                        <button class="btn btn-primary" onclick="saveNotesNow()">
+                            <i class="fas fa-save"></i> Save Now
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Section -->
+            <div id="billing" class="settings-section">
+                <h2 class="section-title">Billing</h2>
+                <div class="form-group">
+                    <label>Generate Bill</label>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bill-date">Bill Date</label>
+                            <input type="date" id="bill-date" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="bill-number">Bill Number</label>
+                            <input type="text" id="bill-number" class="form-control" readonly>
+                            <p class="help-text">Bill number is automatically generated</p>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-name">Customer Name</label>
+                        <input type="text" id="customer-name" class="form-control" placeholder="Enter customer name">
+                    </div>
+                    <div class="form-group">
+                        <label for="customer-contact">Contact Number (Optional)</label>
+                        <input type="tel" id="customer-contact" class="form-control" placeholder="Enter contact number">
+                        <p class="help-text">Enter customer's contact number if available</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="items">Items</label>
+                        <div id="items-container">
+                            <div class="item-row">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <input type="text" class="form-control item-name" placeholder="Item name">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="number" class="form-control item-quantity" placeholder="Quantity">
+                                    </div>
+                                    <div class="form-group">
+                                        <input type="number" class="form-control item-price" placeholder="Price">
+                                    </div>
+                                    <div class="form-group">
+                                        <button class="btn btn-danger" onclick="removeItem(this)">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary mt-2" onclick="addItem()">Add Item</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="total-amount">Total Amount</label>
+                        <input type="number" id="total-amount" class="form-control" readonly>
+                    </div>
+                    <div class="form-group d-flex gap-3">
+                        <button class="btn btn-success flex-grow-1" onclick="saveBill()">
+                            <i class="fas fa-save"></i> Save Bill
+                        </button>
+                        <button class="btn btn-primary flex-grow-1" onclick="generatePDF()">
+                            <i class="fas fa-file-pdf"></i> Generate PDF
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Billing Data Section -->
+            <div id="billing-data" class="settings-section">
+                <h2 class="section-title">Billing Data</h2>
+                <div class="form-group">
+                    <label>View Billing History</label>
+                    <p class="help-text">View and manage all your billing records</p>
+                    <div class="table-responsive">
+                        <table class="table table-striped" id="billing-table">
+                            <thead>
+                                <tr>
+                                    <th>Bill Number</th>
+                                    <th>Date</th>
+                                    <th>Customer Name</th>
+                                    <th>Total Amount</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-data-body">
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logout Section -->
+            <div id="logout" class="settings-section">
+                <h2 class="section-title">Logout</h2>
+                <div class="form-group">
+                    <label>Sign Out</label>
+                    <p class="help-text">Click the button below to sign out of your account.</p>
+                    <button class="btn btn-danger w-100" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Sign Out
+                    </button>
+                </div>
+            </div>
+
+            <div class="footer-buttons">
+                <button class="btn btn-secondary" onclick="resetToDefaults()">Reset to Defaults</button>
+                <button class="btn btn-primary" onclick="saveSettings()">Save All Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS for Navbar Toggle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Quill Rich Text Editor JS -->
+    <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+    <!-- Add jsPDF library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyCfUDCSA4ubUeVtoJxmlKBOlOAozaEMb_M",
+            authDomain: "inventory-management-4eeab.firebaseapp.com",
+            projectId: "inventory-management-4eeab",
+            storageBucket: "inventory-management-4eeab.firebasestorage.app",
+            messagingSenderId: "816685502552",
+            appId: "1:816685502552:web:91653a6b548493dee7ba2d",
+            measurementId: "G-EFEWMMTSR3"
+        };
+
+        // Initialize Firebase
+        try {
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase initialized successfully");
+        } catch (error) {
+            console.error("Firebase initialization error:", error);
+        }
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Get current user's collections
+        function getUserCollections() {
+            const user = auth.currentUser;
+            if (!user) throw new Error('No user logged in');
+            return {
+                settings: db.collection('users').doc(user.uid).collection('settings').doc('appSettings'),
+                products: db.collection('users').doc(user.uid).collection('products'),
+                transactions: db.collection('users').doc(user.uid).collection('transactions'),
+                billing_data: db.collection('users').doc(user.uid).collection('billing_data')
+            };
+        }
+
+        // Initialize settings for new user
+        async function initializeUserSettings(uid) {
+            const settingsRef = db.collection('users').doc(uid).collection('settings').doc('appSettings');
+            const doc = await settingsRef.get();
+            
+            if (!doc.exists) {
+                const defaultSettings = {
+                    businessName: '',
+                    currency: 'INR',
+                    lowStockThreshold: 5,
+                    gstNumber: '',
+                    notes: '',
+                    notesPlainText: '',
+                    lastSaved: null,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                
+                try {
+                    await settingsRef.set(defaultSettings);
+                    console.log("Default settings initialized for new user");
+                } catch (error) {
+                    console.error("Error initializing settings:", error);
+                }
+            }
+        }
+
+        // Load settings with retry mechanism
+        async function loadSettings(attempt = 1, maxAttempts = 3) {
+            try {
+                const { settings } = getUserCollections();
+                const doc = await settings.get();
+                
+                if (doc.exists) {
+                    const data = doc.data();
+                    document.getElementById('business-name').value = data.businessName || '';
+                    document.getElementById('default-currency').value = data.currency || 'INR';
+                    document.getElementById('low-stock-threshold').value = data.lowStockThreshold || 5;
+                    document.getElementById('gst-number').value = data.gstNumber || '';
+                    if (data.notes) {
+                        quill.root.innerHTML = data.notes;
+                        updateWordCount();
+                    }
+                    console.log("Settings loaded successfully on attempt", attempt);
+                } else {
+                    console.log("No settings found, initializing defaults on attempt", attempt);
+                    await initializeUserSettings(auth.currentUser.uid);
+                    await loadSettings(attempt + 1, maxAttempts); // Retry after initialization
+                }
+            } catch (error) {
+                console.error("Error loading settings on attempt", attempt, ":", error.message, error.stack);
+                if (attempt < maxAttempts) {
+                    console.log("Retrying loadSettings, attempt", attempt + 1);
+                    await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+                    await loadSettings(attempt + 1, maxAttempts);
+                } else {
+                    console.error("Max attempts reached. Failed to load settings:", error);
+                    alert("Error loading settings after multiple attempts. Please check your connection or contact support.");
+                }
+            }
+        }
+
+        // Check authentication state and initialize
+        auth.onAuthStateChanged(async (user) => {
+            if (user) {
+                console.log("User is signed in:", user.uid);
+                try {
+                    // Wait for Firebase to fully initialize (small delay to ensure auth is ready)
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await initializeUserSettings(user.uid);
+                    await loadSettings(); // Call with retry mechanism
+                    loadUserEmail();
+                    loadNotes();
+                    loadBillingData();
+                } catch (error) {
+                    console.error("Error initializing user data:", error.message, error.stack);
+                    alert("Error initializing user data. Please try again or contact support.");
+                }
+            } else {
+                console.log("No user is signed in, redirecting to login page");
+                window.location.href = '../login-signup.html';
+            }
+        });
+
+        // Save settings
+        window.saveSettings = function() {
+            const { settings } = getUserCollections();
+            const settingsData = {
+                businessName: document.getElementById('business-name').value,
+                currency: document.getElementById('default-currency').value,
+                lowStockThreshold: parseInt(document.getElementById('low-stock-threshold').value),
+                gstNumber: document.getElementById('gst-number').value,
+                notes: quill.root.innerHTML,
+                notesPlainText: quill.getText(),
+                lastSaved: new Date().toISOString()
+            };
+
+            settings.set(settingsData)
+                .then(() => {
+                    console.log("Settings saved successfully");
+                    alert("Settings saved successfully!");
+                })
+                .catch(error => {
+                    console.error("Error saving settings:", error);
+                    alert("Error saving settings. Please try again.");
+                });
+        };
+
+        // Reset to default settings
+        window.resetToDefaults = function() {
+            if (!confirm("Are you sure you want to reset all settings to default?")) {
+                return;
+            }
+
+            const { settings } = getUserCollections();
+            const defaultSettings = {
+                businessName: '',
+                currency: 'INR',
+                lowStockThreshold: 5,
+                gstNumber: '',
+                notes: '',
+                notesPlainText: '',
+                lastSaved: null
+            };
+
+            settings.set(defaultSettings)
+                .then(() => {
+                    console.log("Settings reset to defaults");
+                    alert("Settings reset to defaults successfully!");
+                    loadSettings();
+                    loadNotes();
+                })
+                .catch(error => {
+                    console.error("Error resetting settings:", error);
+                    alert("Error resetting settings. Please try again.");
+                });
+        };
+
+        // Clear all data
+        window.clearAllData = function() {
+            if (!confirm("Are you sure you want to clear all data? This action cannot be undone.")) {
+                return;
+            }
+
+            const { products, transactions, billing_data } = getUserCollections();
+            
+            // Delete all products
+            products.get()
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    console.log("All products deleted");
+                    return transactions.get();
+                })
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    console.log("All transactions deleted");
+                    return billing_data.get();
+                })
+                .then((querySnapshot) => {
+                    const batch = db.batch();
+                    querySnapshot.forEach((doc) => {
+                        batch.delete(doc.ref);
+                    });
+                    return batch.commit();
+                })
+                .then(() => {
+                    console.log("All billing data deleted");
+                    alert("All data has been cleared successfully!");
+                })
+                .catch(error => {
+                    console.error("Error clearing data:", error);
+                    alert("Error clearing data. Please try again.");
+                });
+        };
+
+        // Download data
+        window.downloadData = function() {
+            const { products, transactions, settings, billing_data } = getUserCollections();
+            
+            Promise.all([
+                products.get(),
+                transactions.get(),
+                settings.get(),
+                billing_data.get()
+            ]).then(([productsSnapshot, transactionsSnapshot, settingsDoc, billingSnapshot]) => {
+                const data = {
+                    products: {},
+                    transactions: {},
+                    settings: settingsDoc.data(),
+                    billing_data: {}
+                };
+
+                productsSnapshot.forEach(doc => {
+                    data.products[doc.id] = doc.data();
+                });
+
+                transactionsSnapshot.forEach(doc => {
+                    data.transactions[doc.id] = doc.data();
+                });
+
+                billingSnapshot.forEach(doc => {
+                    data.billing_data[doc.id] = doc.data();
+                });
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'inventory_data_backup.json';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }).catch(error => {
+                console.error("Error downloading data:", error);
+                alert("Error downloading data. Please try again.");
+            });
+        };
+
+        // Custom Undo/Redo handlers for Quill
+        const undoHandler = function() {
+            this.quill.history.undo();
+        };
+        const redoHandler = function() {
+            this.quill.history.redo();
+        };
+
+        // Custom Checklist handler for Quill
+        const checklistHandler = function() {
+            const range = this.quill.getSelection();
+            if (range) {
+                this.quill.insertText(range.index, '[ ] ', 'user');
+                this.quill.setSelection(range.index + 4);
+            }
+        };
+
+        // Initialize Quill editor with custom modules
+        const quill = new Quill('#editor-container', {
+            modules: {
+                toolbar: {
+                    container: '#toolbar',
+                    handlers: {
+                        undo: undoHandler,
+                        redo: redoHandler,
+                        checklist: checklistHandler
+                    }
+                },
+                history: {
+                    delay: 1000,
+                    maxStack: 100,
+                    userOnly: true
+                }
+            },
+            placeholder: 'Write your notes here...',
+            theme: 'snow'
+        });
+
+        // Add custom checklist to the format dropdown
+        const checklistItem = document.createElement('option');
+        checklistItem.value = 'check';
+        checklistItem.textContent = 'Checklist';
+        document.querySelector('.ql-formats select').appendChild(checklistItem);
+
+        // Add checkbox button to toolbar
+        const toolbar = document.querySelector('#toolbar');
+        const checkboxButton = document.createElement('button');
+        checkboxButton.className = 'ql-checklist';
+        checkboxButton.innerHTML = '<i class="fas fa-check-square"></i>';
+        checkboxButton.title = 'Add Checkbox';
+        checkboxButton.onclick = function() {
+            const range = quill.getSelection();
+            if (range) {
+                quill.insertText(range.index, '☐ ', 'user');
+                quill.setSelection(range.index + 2);
+            }
+        };
+        toolbar.appendChild(checkboxButton);
+
+        // Add custom checkbox style
+        const style = document.createElement('style');
+        style.textContent = `
+            .ql-checklist {
+                color: #333;
+                font-size: 14px;
+                padding: 3px 5px;
+                border: none;
+                background: none;
+                cursor: pointer;
+            }
+            .ql-checklist:hover {
+                color: var(--primary-color);
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Word count function
+        function updateWordCount() {
+            const text = quill.getText().trim();
+            const wordCount = text ? text.split(/\s+/).length : 0;
+            document.getElementById('word-count').textContent = wordCount;
+        }
+
+        // Auto-save notes with debounce
+        let saveTimeout;
+        let isSaving = false;
+
+        function saveNotes() {
+            if (isSaving) return;
+            
+            isSaving = true;
+            const saveIndicator = document.getElementById('save-indicator');
+            saveIndicator.textContent = 'Saving...';
+            saveIndicator.className = 'save-indicator saving';
+            
+            const notes = quill.root.innerHTML;
+            const plainText = quill.getText();
+            
+            const settingsRef = getUserCollections().settings;
+            settingsRef.update({ 
+                notes: notes,
+                notesPlainText: plainText,
+                lastSaved: new Date().toISOString()
+            })
+            .then(() => {
+                const now = new Date();
+                document.getElementById('last-saved').textContent = 
+                    now.toLocaleTimeString() + ' ' + now.toLocaleDateString();
+                saveIndicator.textContent = 'Saved!';
+                saveIndicator.className = 'save-indicator saved';
+                
+                // Reset saved indicator after 3 seconds
+                setTimeout(() => {
+                    saveIndicator.textContent = '';
+                    saveIndicator.className = 'save-indicator';
+                }, 3000);
+                
+                isSaving = false;
+                console.log("Notes saved to Firebase");
+            })
+            .catch(error => {
+                console.error("Error saving notes:", error);
+                saveIndicator.textContent = 'Error!';
+                saveIndicator.className = 'save-indicator error';
+                isSaving = false;
+            });
+        }
+
+        // Manual save function
+        window.saveNotesNow = function() {
+            clearTimeout(saveTimeout);
+            saveNotes();
+        };
+
+        // Clear notes function
+        window.clearNotes = function() {
+            if (confirm("Are you sure you want to clear all notes?")) {
+                quill.setContents([]);
+                updateWordCount();
+                saveNotesNow();
+            }
+        };
+
+        // Tab navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuItems = document.querySelectorAll('.sidebar-menu li');
+            const sections = document.querySelectorAll('.settings-section');
+
+            menuItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    sections.forEach(s => s.classList.remove('active'));
+
+                    this.classList.add('active');
+                    const sectionId = this.getAttribute('data-section');
+                    document.getElementById(sectionId).classList.add('active');
+
+                    // Close sidebar on mobile after selection
+                    if (window.innerWidth <= 768) {
+                        toggleSidebar();
+                    }
+                });
+            });
+
+            // Load settings and user email on page load
+            loadSettings();
+            loadUserEmail();
+            loadNotes();
+            
+            // Setup auto-save for notes
+            quill.on('text-change', function() {
+                updateWordCount();
+                
+                // Debounce auto-save
+                clearTimeout(saveTimeout);
+                saveTimeout = setTimeout(saveNotes, 2000);
+            });
+        });
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('active');
+            overlay.classList.toggle('active');
+            
+            // Prevent scrolling when sidebar is open
+            if (sidebar.classList.contains('active')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        // Load user email from Firebase Authentication
+        function loadUserEmail() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    document.getElementById('user-email').value = user.email || 'No email found';
+                } else {
+                    document.getElementById('user-email').value = 'Not logged in';
+                }
+            });
+        }
+
+        // Load notes from Firebase
+        function loadNotes() {
+            const settingsRef = getUserCollections().settings;
+            settingsRef.get()
+                .then((doc) => {
+                    if (doc.exists && doc.data().notes) {
+                        quill.root.innerHTML = doc.data().notes;
+                        updateWordCount();
+                        
+                        if (doc.data().lastSaved) {
+                            const savedDate = new Date(doc.data().lastSaved);
+                            document.getElementById('last-saved').textContent = 
+                                savedDate.toLocaleTimeString() + ' ' + savedDate.toLocaleDateString();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error("Error loading notes:", error);
+                });
+        }
+
+        // Go back to dashboard
+        window.goBack = function() {
+            if (confirm("Are you sure you want to discard all changes?")) {
+                window.location.href = '../index.html';
+            }
+        };
+
+        // Logout function
+        window.logout = function() {
+            if (!confirm("Are you sure you want to sign out?")) {
+                return;
+            }
+
+            auth.signOut()
+                .then(() => {
+                    // Clear any local storage or session data if needed
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    // Redirect to login-signup page
+                    window.location.href = '../login-signup.html';
+                })
+                .catch(error => {
+                    console.error("Error signing out:", error);
+                    alert("Error signing out. Please try again.");
+                });
+        };
+
+        // Billing functions
+        window.addItem = function() {
+            const container = document.getElementById('items-container');
+            const newRow = document.createElement('div');
+            newRow.className = 'item-row';
+            newRow.innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <input type="text" class="form-control item-name" placeholder="Item name">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-control item-quantity" placeholder="Quantity">
+                    </div>
+                    <div class="form-group">
+                        <input type="number" class="form-control item-price" placeholder="Price">
+                    </div>
+                    <div class="form-group">
+                        <button class="btn btn-danger" onclick="removeItem(this)">Remove</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(newRow);
+        };
+
+        window.removeItem = function(button) {
+            button.closest('.item-row').remove();
+            calculateTotal();
+        };
+
+        function calculateTotal() {
+            let total = 0;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const quantity = parseFloat(row.querySelector('.item-quantity').value) || 0;
+                const price = parseFloat(row.querySelector('.item-price').value) || 0;
+                total += quantity * price;
+            });
+            document.getElementById('total-amount').value = total.toFixed(2);
+        }
+
+        // Add event listeners for total calculation
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('item-quantity') || e.target.classList.contains('item-price')) {
+                calculateTotal();
+            }
+        });
+
+        // Save bill function
+        window.saveBill = function() {
+            // Validate required fields
+            const billDate = document.getElementById('bill-date').value;
+            const customerName = document.getElementById('customer-name').value;
+            const customerContact = document.getElementById('customer-contact').value;
+            
+            if (!billDate || !customerName) {
+                alert("Please fill in all required fields (Bill Date and Customer Name)");
+                return;
+            }
+
+            // Validate items
+            const items = [];
+            let hasItems = false;
+            document.querySelectorAll('.item-row').forEach(row => {
+                const name = row.querySelector('.item-name').value;
+                const quantity = row.querySelector('.item-quantity').value;
+                const price = row.querySelector('.item-price').value;
+                
+                if (name && quantity && price) {
+                    hasItems = true;
+                    items.push({
+                        name: name,
+                        quantity: quantity,
+                        price: price,
+                        total: quantity * price
+                    });
+                }
+            });
+
+            if (!hasItems) {
+                alert("Please add at least one item to the bill");
+                return;
+            }
+
+            // Generate bill number
+            const billNumber = generateBillNumber();
+            document.getElementById('bill-number').value = billNumber;
+
+            // Create billing data
+            const billingData = {
+                billNumber: billNumber,
+                date: billDate,
+                customerName: customerName,
+                customerContact: customerContact || '',
+                items: items,
+                totalAmount: document.getElementById('total-amount').value,
+                createdAt: new Date().toISOString()
+            };
+
+            // Save to Firebase
+            const billingDataRef = getUserCollections().billing_data.doc(billNumber);
+            billingDataRef.set(billingData)
+                .then(() => {
+                    console.log("Bill saved successfully");
+                    alert("Bill saved successfully!");
+                    // Clear form
+                    clearBillForm();
+                    // Reload billing data
+                    loadBillingData();
+                })
+                .catch(error => {
+                    console.error("Error saving bill:", error);
+                    alert("Error saving bill. Please try again.");
+                });
+        };
+
+        // Clear bill form
+        function clearBillForm() {
+            document.getElementById('bill-date').value = '';
+            document.getElementById('customer-name').value = '';
+            document.getElementById('customer-contact').value = '';
+            document.getElementById('items-container').innerHTML = `
+                <div class="item-row">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <input type="text" class="form-control item-name" placeholder="Item name">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" class="form-control item-quantity" placeholder="Quantity">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" class="form-control item-price" placeholder="Price">
+                        </div>
+                        <div class="form-group">
+                            <button class="btn btn-danger" onclick="removeItem(this)">Remove</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('total-amount').value = '';
+        }
+
+        // Modify generatePDF function to use saved bill data
+        window.generatePDF = function() {
+            const billDate = document.getElementById('bill-date').value;
+            const customerName = document.getElementById('customer-name').value;
+            
+            if (!billDate || !customerName) {
+                alert("Please fill in all required fields (Bill Date and Customer Name)");
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Get business name and GST from settings
+            const settingsRef = getUserCollections().settings;
+            settingsRef.get().then(settingsDoc => {
+                const businessName = settingsDoc.data().businessName || 'Business Name';
+                const currency = settingsDoc.data().currency || 'INR';
+                const gstNumber = settingsDoc.data().gstNumber || '';
+                
+                // Generate 8-digit bill number
+                const billNumber = generateBillNumber();
+                
+                // Add content to PDF
+                doc.setFontSize(20);
+                doc.text(businessName, 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`Bill Date: ${billDate}`, 20, 40);
+                doc.text(`Bill Number: ${billNumber}`, 20, 50);
+                if (gstNumber) {
+                    doc.text(`GST Number: ${gstNumber}`, 20, 60);
+                    doc.text(`Customer Name: ${customerName}`, 20, 70);
+                } else {
+                    doc.text(`Customer Name: ${customerName}`, 20, 60);
+                }
+                
+                let y = gstNumber ? 90 : 80;
+                doc.text('Items:', 20, y);
+                y += 10;
+                
+                document.querySelectorAll('.item-row').forEach(row => {
+                    const name = row.querySelector('.item-name').value;
+                    const quantity = row.querySelector('.item-quantity').value;
+                    const price = row.querySelector('.item-price').value;
+                    const total = quantity * price;
+                    
+                    doc.text(`${name} - Qty: ${quantity} - Price: ${currency} ${price} - Total: ${currency} ${total}`, 20, y);
+                    y += 10;
+                });
+                
+                doc.text(`Total Amount: ${currency} ${document.getElementById('total-amount').value}`, 20, y + 10);
+                
+                // Add footer
+                const pageHeight = doc.internal.pageSize.height;
+                doc.setFontSize(10);
+                doc.text('Thank you for your business!', 105, pageHeight - 20, { align: 'center' });
+                
+                // Save the PDF
+                doc.save(`bill_${billNumber}.pdf`);
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                alert("Error generating PDF. Please try again.");
+            });
+        };
+
+        // Generate 8-digit bill number
+        function generateBillNumber() {
+            const date = new Date();
+            const year = date.getFullYear().toString().slice(-2);
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const day = date.getDate().toString().padStart(2, '0');
+            const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+            return `${year}${month}${day}${random}`;
+        }
+
+        // Add this function to load billing data
+        function loadBillingData() {
+            const billingDataBody = document.getElementById('billing-data-body');
+            if (!billingDataBody) return;
+
+            const { billing_data } = getUserCollections();
+            billing_data.orderBy('createdAt', 'desc').get()
+                .then((querySnapshot) => {
+                    billingDataBody.innerHTML = '';
+                    querySnapshot.forEach((doc) => {
+                        const data = doc.data();
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td data-label="Bill Number">${data.billNumber}</td>
+                            <td data-label="Date">${data.date}</td>
+                            <td data-label="Customer">${data.customerName}</td>
+                            <td data-label="Amount">${data.totalAmount}</td>
+                            <td data-label="Actions">
+                                <div class="btn-group-sm">
+                                    <button class="btn btn-primary" onclick="viewBill('${data.billNumber}')">
+                                        <i class="fas fa-eye"></i> View
+                                    </button>
+                                    <button class="btn btn-success" onclick="downloadBill('${data.billNumber}')">
+                                        <i class="fas fa-download"></i> Download
+                                    </button>
+                                </div>
+                            </td>
+                        `;
+                        billingDataBody.appendChild(row);
+                    });
+                })
+                .catch(error => {
+                    console.error("Error loading billing data:", error);
+                    billingDataBody.innerHTML = '<tr><td colspan="5" class="text-center">Error loading billing data</td></tr>';
+                });
+        }
+
+        // Add these functions to handle bill viewing and downloading
+        function viewBill(billNumber) {
+            const { billing_data } = getUserCollections();
+            billing_data.doc(billNumber).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        // Show bill details in a modal
+                        showBillModal(data);
+                    } else {
+                        alert("Bill not found");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error viewing bill:", error);
+                    alert("Error viewing bill");
+                });
+        }
+
+        function downloadBill(billNumber) {
+            const { billing_data } = getUserCollections();
+            billing_data.doc(billNumber).get()
+                .then((doc) => {
+                    if (doc.exists) {
+                        const data = doc.data();
+                        generatePDFFromData(data);
+                    } else {
+                        alert("Bill not found");
+                    }
+                })
+                .catch(error => {
+                    console.error("Error downloading bill:", error);
+                    alert("Error downloading bill");
+                });
+        }
+
+        function showBillModal(data) {
+            // Create modal HTML
+            const modalHtml = `
+                <div class="modal fade" id="billModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Bill Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Bill Number:</strong> ${data.billNumber}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Date:</strong> ${data.date}
+                                    </div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <strong>Customer Name:</strong> ${data.customerName}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Contact Number:</strong> ${data.customerContact || 'Not provided'}
+                                    </div>
+                                </div>
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        ${data.items.map(item => `
+                                            <tr>
+                                                <td>${item.name}</td>
+                                                <td>${item.quantity}</td>
+                                                <td>${item.price}</td>
+                                                <td>${item.total}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                    <tfoot>
+                                        <tr>
+                                            <td colspan="3" class="text-end"><strong>Total Amount:</strong></td>
+                                            <td><strong>${data.totalAmount}</strong></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="generatePDFFromData(${JSON.stringify(data)})">
+                                    Download PDF
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Remove existing modal if any
+            const existingModal = document.getElementById('billModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Add new modal to body
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('billModal'));
+            modal.show();
+        }
+
+        function generatePDFFromData(data) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            const settingsRef = getUserCollections().settings;
+            settingsRef.get().then(settingsDoc => {
+                const businessName = settingsDoc.data().businessName || 'Business Name';
+                const currency = settingsDoc.data().currency || 'INR';
+                const gstNumber = settingsDoc.data().gstNumber || '';
+                
+                // Add content to PDF
+                doc.setFontSize(20);
+                doc.text(businessName, 105, 20, { align: 'center' });
+                
+                doc.setFontSize(12);
+                doc.text(`Bill Date: ${data.date}`, 20, 40);
+                doc.text(`Bill Number: ${data.billNumber}`, 20, 50);
+                if (gstNumber) {
+                    doc.text(`GST Number: ${gstNumber}`, 20, 60);
+                    doc.text(`Customer Name: ${data.customerName}`, 20, 70);
+                    if (data.customerContact) {
+                        doc.text(`Contact Number: ${data.customerContact}`, 20, 80);
+                    }
+                } else {
+                    doc.text(`Customer Name: ${data.customerName}`, 20, 60);
+                    if (data.customerContact) {
+                        doc.text(`Contact Number: ${data.customerContact}`, 20, 70);
+                    }
+                }
+                
+                let y = gstNumber ? (data.customerContact ? 100 : 90) : (data.customerContact ? 90 : 80);
+                doc.text('Items:', 20, y);
+                y += 10;
+                
+                data.items.forEach(item => {
+                    doc.text(`${item.name} - Qty: ${item.quantity} - Price: ${currency} ${item.price} - Total: ${currency} ${item.total}`, 20, y);
+                    y += 10;
+                });
+                
+                doc.text(`Total Amount: ${currency} ${data.totalAmount}`, 20, y + 10);
+                
+                // Add footer
+                const pageHeight = doc.internal.pageSize.height;
+                doc.setFontSize(10);
+                doc.text('Thank you for your business!', 105, pageHeight - 20, { align: 'center' });
+                
+                // Save the PDF
+                doc.save(`bill_${data.billNumber}.pdf`);
+            }).catch(error => {
+                console.error("Error generating PDF:", error);
+                alert("Error generating PDF. Please try again.");
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory Reports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../styles.css">
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        /* Navbar Styles (Copied from product.html) */
+        .navbar {
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #fff !important;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: #ffd700 !important;
+            transform: scale(1.05);
+        }
+        .navbar-nav {
+            margin-left: 50px; /* Shift navbar content to the right on desktop */
+        }
+        .navbar-nav .nav-link {
+            color: #fff !important;
+            font-weight: 600;
+            padding: 10px 20px;
+            border-radius: 25px;
+            margin: 0 5px;
+            transition: background-color 0.3s ease, color 0.3s ease, transform 0.3s ease;
+            position: relative;
+        }
+        .navbar-nav .nav-link:hover {
+            background-color: #ffd700;
+            color: #1e3c72 !important;
+            transform: translateY(-2px);
+        }
+        .navbar-nav .nav-link.active {
+            background-color: #ffd700;
+            color: #1e3c72 !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+        .navbar-nav .nav-link::after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: 0;
+            left: 50%;
+            background-color: #ffd700;
+            transition: width 0.3s ease, left 0.3s ease;
+        }
+        .navbar-nav .nav-link:hover::after {
+            width: 100%;
+            left: 0;
+        }
+        .navbar-toggler {
+            border: none;
+            padding: 10px;
+        }
+        .navbar-toggler-icon {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255, 255, 255, 1)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Mobile Responsive Styles for Navbar */
+        @media (max-width: 768px) {
+            .navbar-nav {
+                margin-left: 0; /* Reset margin on mobile */
+                display: flex;
+                flex-wrap: wrap;
+                justify-content: space-between;
+                background-color: #2a5298; /* Match navbar background for collapsed menu */
+                padding: 10px;
+                border-radius: 0 0 10px 10px;
+            }
+            .navbar-nav .nav-item {
+                flex: 0 0 33.33%; /* Three items per row */
+                text-align: center;
+                margin: 5px 0;
+            }
+            .navbar-nav .nav-link {
+                padding: 10px;
+                margin: 0;
+                border-radius: 5px;
+                font-size: 0.9rem;
+            }
+            .navbar-nav .nav-link:hover::after {
+                width: 0;
+            }
+            .navbar-brand {
+                font-size: 1.4rem;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.2rem;
+            }
+            .navbar-nav .nav-item {
+                flex: 0 0 33.33%; /* Ensure three items per row on smaller screens */
+            }
+            .navbar-nav .nav-link {
+                padding: 8px;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar (Copied from product.html) -->
+    <nav class="navbar navbar-expand-lg navbar-light">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../index.html">Inventory Dashboard</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../index.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../product.html">Manage Product</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../product_list.html">Product List</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../sales-purchases.html">Sales/Purchases</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../stock-management.html">Stock Management</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="reports.html">Reports</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="../settings.html">Settings</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2 class="text-center">Inventory Reports</h2>
+
+        <!-- Loading Spinner -->
+        <div id="loadingSpinner" class="text-center my-4">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Loading reports...</p>
+        </div>
+
+        <!-- Reports Section (Initially Hidden) -->
+        <div id="reportsContent" style="display: none;">
+            <!-- Sales and Purchases Summary -->
+            <div class="row text-center mt-4">
+                <div class="col-md-3">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <i class="fas fa-chart-line fa-3x mb-3 text-primary"></i>
+                            <h4>Total Sales</h4>
+                            <p id="totalSales" class="display-5">0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Total Purchases Card -->
+                <div class="col-md-3">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <i class="fas fa-shopping-cart fa-3x mb-3 text-warning"></i>
+                            <h4>Total Purchases</h4>
+                            <p id="totalPurchases" class="display-5">0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Status -->
+                <div class="col-md-3">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <i class="fas fa-boxes fa-3x mb-3 text-success"></i>
+                            <h4>Current Stock Value</h4>
+                            <p id="totalStockValue" class="display-5">0.00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Low Stock Count -->
+                <div class="col-md-3">
+                    <div class="card shadow mb-4">
+                        <div class="card-body">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-danger"></i>
+                            <h4>Low Stock Items</h4>
+                            <p id="lowStockItems" class="display-5">0</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Low Stock Report Table -->
+            <h4 class="text-center mt-4">Low Stock Products</h4>
+            <table class="table table-bordered table-striped mt-3">
+                <thead>
+                    <tr>
+                        <th>Product Name</th>
+                        <th>Stock Quantity</th>
+                    </tr>
+                </thead>
+                <tbody id="lowStockTableBody">
+                    <!-- Data will be inserted here via JS -->
+                </tbody>
+            </table>
+            
+            <!-- Back Button -->
+            <div class="text-center mt-4">
+                <button class="btn btn-secondary" onclick="goBack()">Go Back</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS for Navbar Toggle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="reports.js"></script>
+</body>
+</html>
